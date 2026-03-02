@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Setup Helper - Print3D Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #2563eb;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .info {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        .step {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .step h3 {
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .step p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1.5rem;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #1e40af;
+        }
+
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .success {
+            background: #d1fae5;
+            border-left-color: #10b981;
+            color: #065f46;
+        }
+
+        .error {
+            background: #fee2e2;
+            border-left-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .loading {
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #dc2626;
+        }
+
+        .links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .links a {
+            flex: 1;
+            text-align: center;
+            padding: 0.75rem;
+            background: #f3f4f6;
+            color: #2563eb;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .links a:hover {
+            background: #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Firebase Setup Helper</h1>
+        
+        <div class="info">
+            <strong>📝 Before you start:</strong>
+            <p style="margin-top: 0.5rem;">Make sure you have completed these steps in Firebase Console:</p>
+            <ol style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                <li>Enabled Email/Password authentication</li>
+                <li>Created Firestore database</li>
+                <li>Created an admin user account</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>Step 1: Login as Admin</h3>
+            <p>First, you need to login with your Firebase admin credentials to add products.</p>
+            <div style="margin-top: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Admin Email:</label>
+                <input type="email" id="adminEmail" placeholder="admin@print3d.com" 
+                       style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 6px; margin-bottom: 1rem;">
+                
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Password:</label>
+                <input type="password" id="adminPassword" placeholder="Enter your password"
+                       style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 6px;">
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Initialize Sample Products</h3>
+            <p>Click the button below to add 12 sample products to your Firestore database. This will help you get started quickly!</p>
+        </div>
+
+        <button class="btn" id="setupBtn" onclick="setupDatabase()">
+            Initialize Database with Sample Products
+        </button>
+
+        <div id="status" style="margin-top: 1.5rem;"></div>
+
+        <div class="links">
+            <a href="admin.html">Go to Admin Panel</a>
+            <a href="index.html">Go to Store</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, signInWithEmailAndPassword, collection, addDoc } from './firebase-config.js';
+
+        const sampleProducts = [
+            { productId: '1', name: 'Dragon Figurine', category: 'figurines', price: 1299, description: 'Detailed fantasy dragon sculpture', icon: '🐉' },
+            { productId: '2', name: 'Desk Organizer', category: 'home-decor', price: 899, description: 'Multi-compartment desk organizer', icon: '📌' },
+            { productId: '3', name: 'Phone Stand', category: 'home-decor', price: 499, description: 'Adjustable phone holder stand', icon: '📱' },
+            { productId: '4', name: 'Custom Name Plate', category: 'custom', price: 699, description: 'Personalized desk nameplate', icon: '✏️' },
+            { productId: '5', name: 'Miniature House', category: 'figurines', price: 1599, description: 'Detailed architectural model house', icon: '🏠' },
+            { productId: '6', name: 'Geometric Planter', category: 'home-decor', price: 799, description: 'Modern geometric plant pot', icon: '🌱' },
+            { productId: '7', name: 'Action Hero Figure', category: 'figurines', price: 1199, description: 'Poseable superhero figurine', icon: '🦸' },
+            { productId: '8', name: 'Wall Hook Set', category: 'home-decor', price: 599, description: 'Decorative wall hooks (pack of 4)', icon: '🎯' },
+            { productId: '9', name: 'Chess Set', category: 'custom', price: 2499, description: 'Custom designed chess pieces', icon: '♟️' },
+            { productId: '10', name: 'Cable Organizer', category: 'home-decor', price: 349, description: 'Desktop cable management clips', icon: '🔌' },
+            { productId: '11', name: 'Anime Character', category: 'figurines', price: 1399, description: 'Popular anime character figure', icon: '🎭' },
+            { productId: '12', name: 'Custom Keychain', category: 'custom', price: 299, description: 'Personalized 3D printed keychain', icon: '🔑' }
+        ];
+
+        async function setupDatabase() {
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const statusDiv = document.getElementById('status');
+            const setupBtn = document.getElementById('setupBtn');
+
+            if (!email || !password) {
+                statusDiv.innerHTML = '<div class="info error">Please enter your admin email and password!</div>';
+                return;
+            }
+
+            setupBtn.disabled = true;
+            statusDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Logging in and setting up database...</p></div>';
+
+            try {
+                // Login
+                await signInWithEmailAndPassword(auth, email, password);
+                
+                statusDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Adding products to Firestore...</p></div>';
+
+                // Add products
+                let successCount = 0;
+                for (const product of sampleProducts) {
+                    try {
+                        await addDoc(collection(db, 'products'), {
+                            ...product,
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        });
+                        successCount++;
+                        statusDiv.innerHTML = `<div class="loading"><div class="spinner"></div><p>Adding products... (${successCount}/${sampleProducts.length})</p></div>`;
+                    } catch (error) {
+                        console.error('Error adding product:', error);
+                    }
+                }
+
+                statusDiv.innerHTML = `
+                    <div class="info success">
+                        <strong>✅ Success!</strong>
+                        <p style="margin-top: 0.5rem;">Successfully added ${successCount} products to your database!</p>
+                        <p style="margin-top: 0.5rem;">You can now:</p>
+                        <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                            <li>Visit the <strong>Admin Panel</strong> to manage products</li>
+                            <li>Visit the <strong>Store</strong> to see your products</li>
+                        </ul>
+                    </div>
+                `;
+                
+                setupBtn.textContent = '✓ Database Initialized!';
+                setupBtn.style.background = '#10b981';
+
+            } catch (error) {
+                console.error('Setup error:', error);
+                let errorMessage = error.message;
+                
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                    errorMessage = 'Invalid email or password. Please check your credentials.';
+                } else if (error.code === 'auth/user-not-found') {
+                    errorMessage = 'Admin user not found. Please create an admin user in Firebase Console first.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Invalid email format.';
+                }
+
+                statusDiv.innerHTML = `
+                    <div class="info error">
+                        <strong>❌ Error:</strong>
+                        <p style="margin-top: 0.5rem;">${errorMessage}</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem;">Make sure you have created an admin user in Firebase Authentication.</p>
+                    </div>
+                `;
+                
+                setupBtn.disabled = false;
+            }
+        }
+
+        // Make function globally available
+        window.setupDatabase = setupDatabase;
+    </script>
+</body>
+</html>

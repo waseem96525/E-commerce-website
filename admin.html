@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Print3D Studio</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-box">
+            <div class="login-header">
+                <i class="fas fa-user-shield"></i>
+                <h2>Admin Login</h2>
+            </div>
+            <form id="loginForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="username">Email</label>
+                    <input type="email" id="username" placeholder="Enter admin email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn-login" id="loginBtn">Login</button>
+                <p class="login-hint">Use your Firebase admin account</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-cube"></i>
+                <span>Print3D Admin</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-section="products">
+                    <i class="fas fa-box"></i>
+                    <span>Products</span>
+                </a>
+                <a href="#" class="nav-item" data-section="orders">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Orders</span>
+                </a>
+                <a href="#" class="nav-item" data-section="customers">
+                    <i class="fas fa-users"></i>
+                    <span>Customers</span>
+                </a>
+                <a href="#" class="nav-item" data-section="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="admin-header">
+                <h1 id="pageTitle">Dashboard</h1>
+                <div class="admin-user">
+                    <a href="index.html" style="margin-right: 1rem; color: #2563eb; text-decoration: none; font-weight: 600;">
+                        <i class="fas fa-store"></i> View Store
+                    </a>
+                    <i class="fas fa-user-circle"></i>
+                    <span id="adminUsername">Admin</span>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <section class="content-section active" id="dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: #3b82f6;">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalProducts">0</h3>
+                            <p>Total Products</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: #10b981;">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalOrders">0</h3>
+                            <p>Total Orders</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: #f59e0b;">
+                            <i class="fas fa-rupee-sign"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalRevenue">₹0</h3>
+                            <p>Total Revenue</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: #8b5cf6;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalCustomers">0</h3>
+                            <p>Customers</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-section">
+                    <h2>Recent Orders</h2>
+                    <div class="table-container">
+                        <table class="data-table" id="recentOrdersTable">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentOrdersBody">
+                                <!-- Orders will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Products Section -->
+            <section class="content-section" id="products">
+                <div class="section-header">
+                    <h2>Product Management</h2>
+                    <button class="btn-primary" onclick="showAddProductModal()">
+                        <i class="fas fa-plus"></i> Add Product
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="productsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Icon</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            <!-- Products will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Orders Section -->
+            <section class="content-section" id="orders">
+                <div class="section-header">
+                    <h2>Order Management</h2>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="ordersTable">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- Orders will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Customers Section -->
+            <section class="content-section" id="customers">
+                <div class="section-header">
+                    <h2>Customer Management</h2>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="customersTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Orders</th>
+                                <th>Total Spent</th>
+                                <th>Join Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody">
+                            <!-- Customers will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section class="content-section" id="settings">
+                <div class="section-header">
+                    <h2>Store Settings</h2>
+                </div>
+                <div class="settings-container">
+                    <div class="settings-card">
+                        <h3><i class="fas fa-address-book"></i> Contact Information</h3>
+                        <form id="contactSettingsForm">
+                            <div class="settings-form-grid">
+                                <div class="form-group">
+                                    <label for="settingPhone">Phone Number</label>
+                                    <input type="tel" id="settingPhone" placeholder="+91 98765 43210" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="settingEmail">Email Address</label>
+                                    <input type="email" id="settingEmail" placeholder="info@print3dstudio.com" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="settingAddress">Store Address</label>
+                                <input type="text" id="settingAddress" placeholder="123 Maker Street, Tech Hub" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="settingCity">City & Postal Code</label>
+                                <input type="text" id="settingCity" placeholder="Bangalore, Karnataka 560001" required>
+                            </div>
+                            
+                            <div class="settings-form-grid">
+                                <div class="form-group">
+                                    <label for="settingWeekdayHours">Weekday Hours</label>
+                                    <input type="text" id="settingWeekdayHours" placeholder="Monday - Friday: 9:00 AM - 8:00 PM" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="settingSaturdayHours">Saturday Hours</label>
+                                    <input type="text" id="settingSaturdayHours" placeholder="10:00 AM - 6:00 PM" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="settingSundayHours">Sunday Hours</label>
+                                <input type="text" id="settingSundayHours" placeholder="Closed" required>
+                            </div>
+                            
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="settings-card">
+                        <h3><i class="fas fa-share-alt"></i> Social Media Links</h3>
+                        <form id="socialSettingsForm">
+                            <div class="form-group">
+                                <label for="settingWhatsapp">WhatsApp Number</label>
+                                <input type="tel" id="settingWhatsapp" placeholder="919876543210" required>
+                                <small>Enter number without + or spaces (e.g., 919876543210)</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="settingYoutube">YouTube Channel URL</label>
+                                <input type="url" id="settingYoutube" placeholder="https://www.youtube.com/@YourChannelName">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="settingInstagram">Instagram Profile URL</label>
+                                <input type="url" id="settingInstagram" placeholder="https://www.instagram.com/your_username">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="settingFacebook">Facebook Page URL</label>
+                                <input type="url" id="settingFacebook" placeholder="https://www.facebook.com/yourpage">
+                            </div>
+                            
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save"></i> Save Social Links
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Product</h2>
+                <span class="modal-close" onclick="closeProductModal()">&times;</span>
+            </div>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                <div class="form-group">
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Category</label>
+                    <select id="productCategory" required>
+                        <option value="figurines">Figurines</option>
+                        <option value="home-decor">Home Decor</option>
+                        <option value="custom">Custom Prints</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="productPrice">Price (₹)</label>
+                    <input type="number" id="productPrice" step="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Description</label>
+                    <textarea id="productDescription" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="productIcon">Icon (Emoji)</label>
+                    <input type="text" id="productIcon" maxlength="2" placeholder="🎨" readonly style="cursor: pointer; background-color: #f9fafb;">
+                    <div class="icon-selector">
+                        <div class="icon-option" onclick="selectIcon('🐉')">🐉</div>
+                        <div class="icon-option" onclick="selectIcon('🦖')">🦖</div>
+                        <div class="icon-option" onclick="selectIcon('🦸')">🦸</div>
+                        <div class="icon-option" onclick="selectIcon('🎭')">🎭</div>
+                        <div class="icon-option" onclick="selectIcon('👾')">👾</div>
+                        <div class="icon-option" onclick="selectIcon('🤖')">🤖</div>
+                        <div class="icon-option" onclick="selectIcon('🏠')">🏠</div>
+                        <div class="icon-option" onclick="selectIcon('🏰')">🏰</div>
+                        <div class="icon-option" onclick="selectIcon('🗿')">🗿</div>
+                        <div class="icon-option" onclick="selectIcon('🗽')">🗽</div>
+                        <div class="icon-option" onclick="selectIcon('🌱')">🌱</div>
+                        <div class="icon-option" onclick="selectIcon('🌺')">🌺</div>
+                        <div class="icon-option" onclick="selectIcon('🎨')">🎨</div>
+                        <div class="icon-option" onclick="selectIcon('🖼️')">🖼️</div>
+                        <div class="icon-option" onclick="selectIcon('🎪')">🎪</div>
+                        <div class="icon-option" onclick="selectIcon('🎯')">🎯</div>
+                        <div class="icon-option" onclick="selectIcon('📌')">📌</div>
+                        <div class="icon-option" onclick="selectIcon('📱')">📱</div>
+                        <div class="icon-option" onclick="selectIcon('⌚')">⌚</div>
+                        <div class="icon-option" onclick="selectIcon('🔑')">🔑</div>
+                        <div class="icon-option" onclick="selectIcon('♟️')">♟️</div>
+                        <div class="icon-option" onclick="selectIcon('🎲')">🎲</div>
+                        <div class="icon-option" onclick="selectIcon('🧩')">🧩</div>
+                        <div class="icon-option" onclick="selectIcon('🎮')">🎮</div>
+                        <div class="icon-option" onclick="selectIcon('🚀')">🚀</div>
+                        <div class="icon-option" onclick="selectIcon('✈️')">✈️</div>
+                        <div class="icon-option" onclick="selectIcon('🚗')">🚗</div>
+                        <div class="icon-option" onclick="selectIcon('🎸')">🎸</div>
+                        <div class="icon-option" onclick="selectIcon('🎺')">🎺</div>
+                        <div class="icon-option" onclick="selectIcon('⚽')">⚽</div>
+                        <div class="icon-option" onclick="selectIcon('🏆')">🏆</div>
+                        <div class="icon-option" onclick="selectIcon('👑')">👑</div>
+                        <div class="icon-option" onclick="selectIcon('💎')">💎</div>
+                        <div class="icon-option" onclick="selectIcon('⭐')">⭐</div>
+                        <div class="icon-option" onclick="selectIcon('✨')">✨</div>
+                        <div class="icon-option" onclick="selectIcon('🔮')">🔮</div>
+                        <div class="icon-option" onclick="selectIcon('💡')">💡</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="productImage">Product Image/3D Model</label>
+                    <input type="file" id="productImage" accept="image/*,.stl,.obj,.gltf,.glb">
+                    <small style="color: #6b7280; display: block; margin-top: 0.5rem;">
+                        Upload product image or 3D model file (.jpg, .png, .stl, .obj, .gltf, .glb)
+                    </small>
+                    <div id="currentImagePreview" style="margin-top: 1rem; display: none;">
+                        <img id="previewImage" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #e5e7eb;" />
+                        <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #6b7280;">Current image</p>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeProductModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print3D Studio - Custom 3D Printed Products</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo">
+                    <i class="fas fa-cube"></i>
+                    <span>Print3D Studio</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#gallery">Gallery</a></li>
+                    <li><a href="#products">Products</a></li>
+                    <li><a href="#track-order">Track Order</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="admin.html" style="color: #f59e0b;"><i class="fas fa-user-shield"></i> Admin</a></li>
+                </ul>
+                <div class="cart-icon" id="cartIcon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Print3D Studio</h1>
+            <p>High-quality custom 3D printed products delivered to your door</p>
+            <button class="btn-primary" onclick="document.getElementById('products').scrollIntoView({behavior: 'smooth'})">
+                Shop Now
+            </button>
+        </div>
+    </section>
+
+    <!-- Order Tracking Section -->
+    <section class="tracking-section" id="track-order">
+        <div class="container">
+            <h2 class="section-title">Track Your Order</h2>
+            <div class="tracking-card">
+                <p class="tracking-description">Enter your Order ID and Mobile Number to track your order status</p>
+                <div class="tracking-form">
+                    <div class="form-group">
+                        <label for="trackOrderId">Order ID</label>
+                        <input type="text" id="trackOrderId" placeholder="e.g., ORD1234567890" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trackMobile">Mobile Number</label>
+                        <input type="tel" id="trackMobile" placeholder="10-digit mobile number" pattern="[0-9]{10}" maxlength="10" required>
+                    </div>
+                    <button class="btn-track" onclick="trackOrder()">
+                        <i class="fas fa-search"></i> Track Order
+                    </button>
+                </div>
+                <div class="tracking-result" id="trackingResult" style="display: none;">
+                    <!-- Order details will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3D Gallery Section -->
+    <section class="gallery-section" id="gallery">
+        <div class="container">
+            <h2 class="section-title">Our 3D Printed Gallery</h2>
+            <p class="gallery-subtitle">Explore our collection of high-quality 3D printed products</p>
+            
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Gallery items will be dynamically loaded from Firestore -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Modal -->
+    <div class="gallery-modal" id="galleryModal">
+        <span class="gallery-close" onclick="closeGalleryModal()">&times;</span>
+        <button class="gallery-nav gallery-prev" onclick="changeGalleryImage(-1)">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="gallery-modal-content">
+            <div class="gallery-modal-image" id="galleryModalImage">
+                <div class="gallery-placeholder-large" id="galleryPlaceholder">🐉</div>
+            </div>
+            <div class="gallery-modal-info">
+                <h3 id="galleryTitle">Fantasy Dragon</h3>
+                <p id="galleryDescription">Highly detailed fantasy dragon sculpture with intricate scales and wings. Perfect for display or collectors.</p>
+            </div>
+        </div>
+        <button class="gallery-nav gallery-next" onclick="changeGalleryImage(1)">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Products Section -->
+    <section class="products-section" id="products">
+        <div class="container">
+            <h2 class="section-title">Featured Products</h2>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-category="all">All</button>
+                <button class="filter-btn" data-category="figurines">Figurines</button>
+                <button class="filter-btn" data-category="home-decor">Home Decor</button>
+                <button class="filter-btn" data-category="custom">Custom Prints</button>
+                <button class="refresh-btn" onclick="refreshProducts()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be dynamically loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Shopping Cart Modal -->
+    <div class="cart-modal" id="cartModal">
+        <div class="cart-modal-content">
+            <div class="cart-header">
+                <h2>Shopping Cart</h2>
+                <span class="close-cart" id="closeCart">&times;</span>
+            </div>
+            <div class="cart-items" id="cartItems">
+                <!-- Cart items will be displayed here -->
+            </div>
+            <div class="customer-details-form">
+                <h3>Delivery Details</h3>
+                <div class="form-group">
+                    <label for="customerName">Full Name *</label>
+                    <input type="text" id="customerName" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerMobile">Mobile Number *</label>
+                    <input type="tel" id="customerMobile" placeholder="Enter 10-digit mobile number" pattern="[0-9]{10}" maxlength="10" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerAddress">Delivery Address *</label>
+                    <textarea id="customerAddress" placeholder="Enter your complete address" rows="3" required></textarea>
+                </div>
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span class="total-price" id="totalPrice">$0.00</span>
+                </div>
+                <button class="btn-checkout" id="checkoutBtn">Checkout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WhatsApp Float Button -->
+    <!-- To change WhatsApp number: Replace 919876543210 with your number (include country code without +) -->
+    <!-- Contact Section -->
+    <section class="contact-section" id="contact">
+        <div class="container">
+            <h2 class="section-title">Get In Touch</h2>
+            <p class="section-subtitle">Have questions? We'd love to hear from you!</p>
+            
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <div class="contact-card">
+                        <div class="contact-icon">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <h3>Call Us</h3>
+                        <p id="contactPhone">+91 98765 43210</p>
+                        <p class="text-muted" id="contactPhoneHours">Mon-Sat: 9:00 AM - 8:00 PM</p>
+                    </div>
+                    
+                    <div class="contact-card">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h3>Email Us</h3>
+                        <p id="contactEmail">info@print3dstudio.com</p>
+                        <p class="text-muted">We'll respond within 24 hours</p>
+                    </div>
+                    
+                    <div class="contact-card">
+                        <div class="contact-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h3>Visit Us</h3>
+                        <p id="contactAddress">123 Maker Street, Tech Hub</p>
+                        <p class="text-muted" id="contactCity">Bangalore, Karnataka 560001</p>
+                    </div>
+                    
+                    <div class="contact-card">
+                        <div class="contact-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3>Working Hours</h3>
+                        <p id="contactWeekdayHours">Monday - Friday: 9:00 AM - 8:00 PM</p>
+                        <p id="contactSaturdayHours">Saturday: 10:00 AM - 6:00 PM</p>
+                        <p class="text-muted" id="contactSundayHours">Sunday: Closed</p>
+                    </div>
+                </div>
+                
+                <div class="contact-form-wrapper">
+                    <div class="contact-form-card">
+                        <h3>Send us a Message</h3>
+                        <form class="contact-form" id="contactForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contactName">Your Name</label>
+                                    <input type="text" id="contactName" placeholder="John Doe" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="contactEmail">Your Email</label>
+                                    <input type="email" id="contactEmail" placeholder="john@example.com" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="contactPhone">Phone Number</label>
+                                <input type="tel" id="contactPhone" placeholder="+91 98765 43210" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contactSubject">Subject</label>
+                                <select id="contactSubject" required>
+                                    <option value="">Select a topic</option>
+                                    <option value="general">General Inquiry</option>
+                                    <option value="custom">Custom Order Request</option>
+                                    <option value="support">Technical Support</option>
+                                    <option value="feedback">Feedback</option>
+                                    <option value="bulk">Bulk Order</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="contactMessage">Message</label>
+                                <textarea id="contactMessage" rows="5" placeholder="Tell us more about your requirements..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary btn-block">
+                                <i class="fas fa-paper-plane"></i> Send Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <a href="https://wa.me/919876543210?text=Hi!%20I'm%20interested%20in%20your%203D%20printed%20products" 
+       class="whatsapp-float" 
+       target="_blank" 
+       title="Chat on WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About Us</h3>
+                    <p>Your trusted source for high-quality custom 3D printed products.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#gallery">Gallery</a></li>
+                        <li><a href="#products">Products</a></li>
+                        <li><a href="#track-order">Track Order</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Follow Us</h3>
+                    <div class="social-links">
+                        <!-- Replace with your actual social media links -->
+                        <a href="https://www.youtube.com/@YourChannelName" target="_blank" rel="noopener" title="YouTube">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                        <a href="https://www.instagram.com/your_username" target="_blank" rel="noopener" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://wa.me/919876543210" target="_blank" rel="noopener" title="WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                        <a href="https://www.facebook.com/yourpage" target="_blank" rel="noopener" title="Facebook">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Print3D Studio. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

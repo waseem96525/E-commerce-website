@@ -1,0 +1,20 @@
+{
+  "name": "print3d-studio",
+  "version": "1.0.0",
+  "description": "Print3D Studio - Custom 3D Printed Products E-commerce Website",
+  "main": "index.html",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "ecommerce",
+    "3d-printing",
+    "firebase",
+    "online-store"
+  ],
+  "author": "Print3D Studio",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
