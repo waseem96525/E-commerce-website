@@ -10,7 +10,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyBpu6CMVdJfrr4iJxLzEoRruQRdT_D4Ydw",
     authDomain: "e-commerce-app-af794.firebaseapp.com",
     projectId: "e-commerce-app-af794",
-    storageBucket: "e-commerce-app-af794.firebasestorage.app",
+    storageBucket: "e-commerce-app-af794.appspot.com",
     messagingSenderId: "792762350753",
     appId: "1:792762350753:web:cbf3da8f12b62ee56484e0",
     measurementId: "G-D8BN81BPH8"

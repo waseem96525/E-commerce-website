@@ -341,18 +341,39 @@ async function handleProductSubmit(e) {
     try {
         let imageUrl = '';
         
-        // Upload file to Firebase Storage if a new file is selected
+        // Convert file to Base64 directly (bypassing Firebase Storage CORS issues)
         if (file) {
-            const fileName = `products/${Date.now()}_${file.name}`;
-            const storageRef = ref(storage, fileName);
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showNotification('Please upload a valid image file (JPG, PNG, GIF, or WebP)', 'error');
+                return;
+            }
             
-            // Show upload progress
-            showNotification('Uploading file...', 'info');
+            // Validate file size (max 5MB - though lower is better for Base64)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('Image size must be less than 5MB', 'error');
+                return;
+            }
             
-            await uploadBytes(storageRef, file);
-            imageUrl = await getDownloadURL(storageRef);
+            // Show processing progress
+            showNotification('Processing image...', 'info');
             
-            showNotification('File uploaded successfully!', 'success');
+            try {
+                // Read file as Base64 string
+                imageUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = error => reject(error);
+                    reader.readAsDataURL(file);
+                });
+                
+                showNotification('Image processed successfully!', 'success');
+            } catch (error) {
+                console.error('Error converting image:', error);
+                showNotification('Error processing image to Base64', 'error');
+                return;
+            }
         }
 
         const productData = {
@@ -853,6 +874,56 @@ async function saveUpiSettings(e) {
         showNotification('Error saving UPI settings: ' + error.message, 'error');
     }
 }
+
+// Diagnostics function for storage issues
+async function checkStorageConfiguration() {
+    console.log('🔍 Running Firebase Storage Diagnostics...\n');
+    
+    // Check if storage is initialized
+    console.log('✅ Storage Config:');
+    console.log(`   Bucket: ${storage.app.options.storageBucket}`);
+    console.log(`   Project ID: ${storage.app.options.projectId}`);
+    
+    // Check authentication
+    if (auth.currentUser) {
+        console.log('\n✅ Authentication:');
+        console.log(`   Logged in as: ${auth.currentUser.email}`);
+        console.log(`   User ID: ${auth.currentUser.uid}`);
+    } else {
+        console.log('\n❌ Authentication: NOT LOGGED IN');
+        console.log('   You must be logged in to upload images!');
+        return;
+    }
+    
+    // Test storage access
+    try {
+        const testRef = ref(storage, 'test/connection_test.txt');
+        console.log('\n🔄 Testing storage connection...');
+        console.log(`   Test path: ${testRef.fullPath}`);
+        console.log('   ✅ Storage reference created successfully');
+        
+        showNotification('Storage diagnostics complete - check console (F12)', 'success');
+    } catch (error) {
+        console.error('\n❌ Storage Error:', error);
+        console.log('   Error code:', error.code);
+        console.log('   Error message:', error.message);
+        showNotification('Storage configuration error - check console (F12)', 'error');
+    }
+    
+    console.log('\n📋 Troubleshooting:');
+    console.log('   1. Verify Firebase Storage is enabled in console');
+    console.log('   2. Check storage security rules allow authenticated writes');
+    console.log('   3. Verify storageBucket URL in firebase-config.js');
+    console.log('   4. See FIREBASE-STORAGE-SETUP.md for detailed instructions');
+}
+
+// Make functions available globally for debugging
+window.checkStorageConfiguration = checkStorageConfiguration;
+window.logout = logout;
+
+console.log('💡 Admin Panel Loaded!');
+console.log('   Type checkStorageConfiguration() in console to diagnose storage issues');
+
 
 // Close modal on outside click
 window.onclick = function(event) {

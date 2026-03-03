@@ -307,7 +307,13 @@ http://localhost:3000
 
 ## 🐛 Troubleshooting
 
-## 🐛 Troubleshooting
+**📖 Comprehensive Error Guide:** [ERROR-EXPLANATIONS.md](ERROR-EXPLANATIONS.md)
+
+### Firestore permission errors (CRITICAL)
+- **Error:** `Missing or insufficient permissions`
+- **📖 Fix Guide:** [FIRESTORE-RULES-FIX.md](FIRESTORE-RULES-FIX.md)
+- Go to Firebase Console → Firestore Database → Rules
+- Copy security rules from the guide and publish
 
 ### Products not loading
 - Check Firestore rules allow public read
@@ -320,9 +326,13 @@ http://localhost:3000
 - Check credentials are correct
 
 ### Images not uploading
+- **📖 See detailed guide:** [IMAGE-UPLOAD-FIX.md](IMAGE-UPLOAD-FIX.md)
 - Enable Firebase Storage in console
-- Set storage security rules (see Firebase Setup)
-- Check file size limits
+- Set storage security rules (see [FIREBASE-STORAGE-SETUP.md](FIREBASE-STORAGE-SETUP.md))
+- Check file size limits (max 5MB)
+- Verify storage bucket URL: `e-commerce-app-af794.appspot.com`
+- Ensure you're logged in as admin
+- Run `checkStorageConfiguration()` in browser console for diagnostics
 
 ### Deployment issues
 - Verify all files are pushed to GitHub
