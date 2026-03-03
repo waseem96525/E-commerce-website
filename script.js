@@ -342,6 +342,10 @@ function showPaymentModal() {
     const closePayment = document.getElementById('closePayment');
     closePayment.onclick = closePaymentModal;
     
+    // Setup screenshot upload
+    const screenshotInput = document.getElementById('paymentScreenshot');
+    screenshotInput.onchange = handleScreenshotUpload;
+    
     // Close on outside click
     paymentModal.onclick = function(e) {
         if (e.target === paymentModal) {
@@ -350,10 +354,71 @@ function showPaymentModal() {
     };
 }
 
+// Handle Screenshot Upload
+function handleScreenshotUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        event.target.value = '';
+        return;
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file');
+        event.target.value = '';
+        return;
+    }
+    
+    // Read and preview file
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const previewImg = document.getElementById('previewImg');
+        const screenshotPreview = document.getElementById('screenshotPreview');
+        const screenshotPlaceholder = document.getElementById('screenshotPlaceholder');
+        
+        previewImg.src = e.target.result;
+        screenshotPreview.style.display = 'block';
+        screenshotPlaceholder.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+// Remove Screenshot
+function removeScreenshot(event) {
+    event.stopPropagation();
+    
+    const screenshotInput = document.getElementById('paymentScreenshot');
+    const screenshotPreview = document.getElementById('screenshotPreview');
+    const screenshotPlaceholder = document.getElementById('screenshotPlaceholder');
+    const previewImg = document.getElementById('previewImg');
+    
+    screenshotInput.value = '';
+    previewImg.src = '';
+    screenshotPreview.style.display = 'none';
+    screenshotPlaceholder.style.display = 'block';
+}
+
 // Close Payment Modal
 function closePaymentModal() {
     const paymentModal = document.getElementById('paymentModal');
     paymentModal.classList.remove('active');
+    
+    // Reset screenshot preview
+    const screenshotInput = document.getElementById('paymentScreenshot');
+    const screenshotPreview = document.getElementById('screenshotPreview');
+    const screenshotPlaceholder = document.getElementById('screenshotPlaceholder');
+    const previewImg = document.getElementById('previewImg');
+    
+    if (screenshotInput) {
+        screenshotInput.value = '';
+        previewImg.src = '';
+        screenshotPreview.style.display = 'none';
+        screenshotPlaceholder.style.display = 'block';
+    }
 }
 
 // Copy UPI ID
@@ -381,11 +446,30 @@ async function confirmPayment() {
     const customerMobile = document.getElementById('customerMobile').value.trim();
     const customerAddress = document.getElementById('customerAddress').value.trim();
     
+    // Check if screenshot is uploaded
+    const screenshotInput = document.getElementById('paymentScreenshot');
+    if (!screenshotInput.files || !screenshotInput.files[0]) {
+        const confirmed = confirm('No payment screenshot uploaded. Do you want to continue without it?\n\nNote: Uploading screenshot helps verify your payment faster.');
+        if (!confirmed) return;
+    }
+    
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
     
     // Save order to Firestore
     try {
+        // Convert screenshot to Base64 if uploaded
+        let paymentScreenshot = null;
+        if (screenshotInput.files && screenshotInput.files[0]) {
+            showNotification('Processing payment screenshot...', 'info');
+            paymentScreenshot = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(screenshotInput.files[0]);
+            });
+        }
+        
         const orderData = {
             orderId: 'ORD' + Date.now(),
             customer: customerName,
@@ -397,6 +481,7 @@ async function confirmPayment() {
             status: 'pending',
             paymentMethod: 'UPI',
             paymentStatus: 'paid',
+            paymentScreenshot: paymentScreenshot,
             cartItems: cart.map(item => ({
                 productId: item.id,
                 name: item.name,
@@ -953,3 +1038,4 @@ window.changeGalleryImage = changeGalleryImage;
 window.copyUpiId = copyUpiId;
 window.closePaymentModal = closePaymentModal;
 window.confirmPayment = confirmPayment;
+window.removeScreenshot = removeScreenshot;

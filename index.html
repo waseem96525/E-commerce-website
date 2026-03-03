@@ -204,11 +204,32 @@
                     </div>
                 </div>
                 
+                <div class="payment-screenshot-section">
+                    <h3><i class="fas fa-camera"></i> Upload Payment Screenshot</h3>
+                    <div class="screenshot-upload-card">
+                        <input type="file" id="paymentScreenshot" accept="image/*" style="display: none;">
+                        <div class="screenshot-upload-area" onclick="document.getElementById('paymentScreenshot').click()">
+                            <div id="screenshotPreview" style="display: none;">
+                                <img id="previewImg" src="" alt="Payment Screenshot">
+                                <button class="remove-screenshot-btn" onclick="removeScreenshot(event)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div id="screenshotPlaceholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Click to upload payment screenshot</p>
+                                <small>Supported: JPG, PNG (Max 5MB)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="payment-instructions">
                     <h4><i class="fas fa-info-circle"></i> Payment Instructions</h4>
                     <ol>
                         <li>Make payment using the UPI ID or QR Code above</li>
-                        <li>After payment, click "I Have Paid" button below</li>
+                        <li><strong>Upload payment screenshot</strong> for verification</li>
+                        <li>Click "I Have Paid" button below</li>
                         <li>Your order will be confirmed and you'll receive an Order ID</li>
                         <li>Save your Order ID to track your order</li>
                     </ol>

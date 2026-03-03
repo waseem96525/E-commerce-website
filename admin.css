@@ -751,3 +751,121 @@ body {
         overflow-x: scroll;
     }
 }
+/* Order Details Modal */
+.order-details-content {
+    padding: 1.5rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.order-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.order-section:last-child {
+    border-bottom: none;
+}
+
+.order-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.order-info-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.info-col label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.info-col .info-value {
+    font-size: 1rem;
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.order-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.order-info-grid div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.order-info-grid label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.order-info-grid span {
+    font-size: 0.95rem;
+    color: #1f2937;
+}
+
+.order-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.order-items-table th,
+.order-items-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.order-items-table th {
+    background-color: #f3f4f6;
+    font-weight: 600;
+    color: #374151;
+}
+
+.order-items-table tfoot td {
+    font-size: 1.1rem;
+    padding-top: 1rem;
+    border-top: 2px solid #1f2937;
+    border-bottom: none;
+}
+
+.payment-screenshot-view {
+    background-color: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.payment-screenshot-view img {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.payment-screenshot-view img:hover {
+    transform: scale(1.02);
+}

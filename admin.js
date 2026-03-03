@@ -457,22 +457,98 @@ function viewOrderDetails(orderId) {
         let itemsDetails = '';
         if (order.cartItems && order.cartItems.length > 0) {
             itemsDetails = order.cartItems.map(item => 
-                `\n  • ${item.name} (Qty: ${item.quantity}) - ₹${item.price.toLocaleString('en-IN')} each`
+                `<tr>
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>₹${item.price.toLocaleString('en-IN')}</td>
+                    <td>₹${(item.price * item.quantity).toLocaleString('en-IN')}</td>
+                </tr>`
             ).join('');
         }
 
-        alert(`📦 ORDER DETAILS\n\n` +
-              `Order ID: ${order.orderId || order.id}\n` +
-              `Status: ${(order.status || 'pending').toUpperCase()}\n` +
-              `Date: ${formatDate(order.date || new Date().toISOString())}\n\n` +
-              `👤 CUSTOMER INFORMATION\n` +
-              `Name: ${order.customer || 'Guest'}\n` +
-              `Mobile: ${order.mobile || 'N/A'}\n` +
-              `Address: ${order.address || 'N/A'}\n\n` +
-              `🛍️ ORDER ITEMS (${order.items || 0} items)${itemsDetails}\n\n` +
-              `💰 TOTAL: ₹${(order.total || 0).toLocaleString('en-IN')}`
-        );
+        // Payment screenshot section
+        let screenshotSection = '';
+        if (order.paymentScreenshot) {
+            screenshotSection = `
+                <div class="order-section">
+                    <h3><i class="fas fa-image"></i> Payment Screenshot</h3>
+                    <div class="payment-screenshot-view">
+                        <img src="${order.paymentScreenshot}" alt="Payment Screenshot" onclick="window.open('${order.paymentScreenshot}', '_blank')" style="cursor: pointer;">
+                        <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #6b7280;">Click image to view full size</p>
+                    </div>
+                </div>
+            `;
+        } else {
+            screenshotSection = `
+                <div class="order-section">
+                    <h3><i class="fas fa-image"></i> Payment Screenshot</h3>
+                    <p style="color: #ef4444; font-weight: 600;">⚠️ No payment screenshot uploaded</p>
+                </div>
+            `;
+        }
+
+        const orderDetailsHTML = `
+            <div class="order-section">
+                <div class="order-info-row">
+                    <div class="info-col">
+                        <label>Order ID:</label>
+                        <span class="info-value">${order.orderId || order.id}</span>
+                    </div>
+                    <div class="info-col">
+                        <label>Status:</label>
+                        <span class="status-badge status-${order.status || 'pending'}">${(order.status || 'pending').toUpperCase()}</span>
+                    </div>
+                    <div class="info-col">
+                        <label>Date:</label>
+                        <span class="info-value">${formatDate(order.date || new Date().toISOString())}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-section">
+                <h3><i class="fas fa-user"></i> Customer Information</h3>
+                <div class="order-info-grid">
+                    <div><label>Name:</label> <span>${order.customer || 'Guest'}</span></div>
+                    <div><label>Mobile:</label> <span>${order.mobile || 'N/A'}</span></div>
+                    <div><label>Address:</label> <span>${order.address || 'N/A'}</span></div>
+                    <div><label>Payment:</label> <span>${order.paymentMethod || 'UPI'}</span></div>
+                </div>
+            </div>
+
+            <div class="order-section">
+                <h3><i class="fas fa-shopping-cart"></i> Order Items</h3>
+                <table class="order-items-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsDetails || '<tr><td colspan="4">No items</td></tr>'}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3"><strong>Total</strong></td>
+                            <td><strong>₹${(order.total || 0).toLocaleString('en-IN')}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            ${screenshotSection}
+        `;
+
+        document.getElementById('orderDetailsContent').innerHTML = orderDetailsHTML;
+        document.getElementById('orderModal').classList.add('active');
     }
+}
+
+// Close Order Modal
+function closeOrderModal() {
+    document.getElementById('orderModal').classList.remove('active');
 }
 
 // Contact Customer via WhatsApp
@@ -780,9 +856,14 @@ async function saveUpiSettings(e) {
 
 // Close modal on outside click
 window.onclick = function(event) {
-    const modal = document.getElementById('productModal');
-    if (event.target === modal) {
+    const productModal = document.getElementById('productModal');
+    const orderModal = document.getElementById('orderModal');
+    
+    if (event.target === productModal) {
         closeProductModal();
+    }
+    if (event.target === orderModal) {
+        closeOrderModal();
     }
 }
 
@@ -793,6 +874,7 @@ window.closeProductModal = closeProductModal;
 window.editProduct = editProduct;
 window.deleteProduct = deleteProduct;
 window.viewOrderDetails = viewOrderDetails;
+window.closeOrderModal = closeOrderModal;
 window.contactWhatsApp = contactWhatsApp;
 window.updateOrderStatus = updateOrderStatus;
 window.deleteOrder = deleteOrder;
