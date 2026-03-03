@@ -115,18 +115,35 @@ async function refreshProducts() {
 
 // Create Product Card
 function createProductCard(product) {
+    const quantity = product.quantity ?? 0;
+    const isOutOfStock = quantity === 0;
+    const isLowStock = quantity > 0 && quantity < 5;
+    
+    // Stock badge
+    let stockBadge = '';
+    if (isOutOfStock) {
+        stockBadge = '<span class="stock-badge out-of-stock">Out of Stock</span>';
+    } else if (isLowStock) {
+        stockBadge = `<span class="stock-badge low-stock">Only ${quantity} left</span>`;
+    }
+    
     const card = document.createElement('div');
     card.className = 'product-card';
+    if (isOutOfStock) {
+        card.classList.add('out-of-stock-card');
+    }
+    
     card.innerHTML = `
         <div class="product-image">${product.icon}</div>
+        ${stockBadge}
         <div class="product-info">
             <div class="product-category">${product.category}</div>
             <h3 class="product-name">${product.name}</h3>
             <p class="product-description">${product.description}</p>
             <div class="product-footer">
                 <span class="product-price">₹${product.price.toFixed(0)}</span>
-                <button class="add-to-cart-btn" onclick="addToCart('${product.id}')">
-                    <i class="fas fa-cart-plus"></i> Add
+                <button class="add-to-cart-btn" onclick="addToCart('${product.id}')" ${isOutOfStock ? 'disabled' : ''}>
+                    <i class="fas fa-cart-plus"></i> ${isOutOfStock ? 'Out of Stock' : 'Add'}
                 </button>
             </div>
         </div>
@@ -137,7 +154,22 @@ function createProductCard(product) {
 // Add to Cart
 function addToCart(productId) {
     const product = products.find(p => p.id === productId);
+    
+    // Check stock availability
+    const availableStock = product.quantity ?? 0;
+    if (availableStock === 0) {
+        alert('Sorry, this product is out of stock!');
+        return;
+    }
+    
     const existingItem = cart.find(item => item.id === productId);
+    const currentCartQuantity = existingItem ? existingItem.quantity : 0;
+    
+    // Check if we can add one more
+    if (currentCartQuantity >= availableStock) {
+        alert(`Sorry, only ${availableStock} item(s) available in stock!`);
+        return;
+    }
 
     if (existingItem) {
         existingItem.quantity++;
@@ -228,7 +260,7 @@ function toggleCart() {
     cartModal.classList.toggle('active');
 }
 
-// Checkout
+// Checkout - Show Payment Modal
 async function checkout() {
     if (cart.length === 0) {
         alert('Your cart is empty!');
@@ -259,6 +291,96 @@ async function checkout() {
         return;
     }
 
+    // Calculate total and show payment modal
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // Load UPI details and show payment modal
+    await loadUpiDetails();
+    document.getElementById('paymentAmount').textContent = `₹${total.toFixed(0)}`;
+    showPaymentModal();
+}
+
+// Load UPI Details from Firestore
+async function loadUpiDetails() {
+    try {
+        const settingsSnapshot = await getDocs(collection(db, 'settings'));
+        if (!settingsSnapshot.empty) {
+            const settings = settingsSnapshot.docs[0].data();
+            
+            // Update UPI ID
+            const upiIdText = document.getElementById('upiIdText');
+            if (settings.upiId) {
+                upiIdText.textContent = settings.upiId;
+            } else {
+                upiIdText.textContent = 'UPI ID not configured';
+            }
+            
+            // Update QR Code
+            const qrCodeImg = document.getElementById('upiQrCode');
+            const qrCodePlaceholder = document.getElementById('qrCodePlaceholder');
+            if (settings.upiQrCode) {
+                qrCodeImg.src = settings.upiQrCode;
+                qrCodeImg.style.display = 'block';
+                qrCodePlaceholder.style.display = 'none';
+            } else {
+                qrCodeImg.style.display = 'none';
+                qrCodePlaceholder.style.display = 'block';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading UPI details:', error);
+        document.getElementById('upiIdText').textContent = 'Error loading UPI details';
+    }
+}
+
+// Show Payment Modal
+function showPaymentModal() {
+    const paymentModal = document.getElementById('paymentModal');
+    paymentModal.classList.add('active');
+    
+    // Setup close button
+    const closePayment = document.getElementById('closePayment');
+    closePayment.onclick = closePaymentModal;
+    
+    // Close on outside click
+    paymentModal.onclick = function(e) {
+        if (e.target === paymentModal) {
+            closePaymentModal();
+        }
+    };
+}
+
+// Close Payment Modal
+function closePaymentModal() {
+    const paymentModal = document.getElementById('paymentModal');
+    paymentModal.classList.remove('active');
+}
+
+// Copy UPI ID
+function copyUpiId() {
+    const upiIdText = document.getElementById('upiIdText').textContent;
+    if (upiIdText && upiIdText !== 'Loading...' && upiIdText !== 'UPI ID not configured') {
+        navigator.clipboard.writeText(upiIdText).then(() => {
+            showNotification('UPI ID copied to clipboard!');
+        }).catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = upiIdText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showNotification('UPI ID copied to clipboard!');
+        });
+    }
+}
+
+// Confirm Payment and Place Order
+async function confirmPayment() {
+    const customerName = document.getElementById('customerName').value.trim();
+    const customerMobile = document.getElementById('customerMobile').value.trim();
+    const customerAddress = document.getElementById('customerAddress').value.trim();
+    
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
     
@@ -273,6 +395,8 @@ async function checkout() {
             total: total,
             date: new Date().toISOString(),
             status: 'pending',
+            paymentMethod: 'UPI',
+            paymentStatus: 'paid',
             cartItems: cart.map(item => ({
                 productId: item.id,
                 name: item.name,
@@ -284,7 +408,9 @@ async function checkout() {
         
         await addDoc(collection(db, 'orders'), orderData);
         
-        alert(`✅ Order Placed Successfully!\n\n📦 ORDER ID: ${orderData.orderId}\n(Save this ID to track your order)\n\nCustomer: ${customerName}\nItems: ${itemCount}\nTotal: ₹${total.toFixed(0)}\n\nDelivery Address:\n${customerAddress}\n\nContact: ${customerMobile}\n\n🔍 Track your order anytime using the "Track Order" section on our website!`);
+        closePaymentModal();
+        
+        alert(`✅ Order Placed Successfully!\n\n📦 ORDER ID: ${orderData.orderId}\n(Save this ID to track your order)\n\nCustomer: ${customerName}\nItems: ${itemCount}\nTotal: ₹${total.toFixed(0)}\n\nPayment: UPI (Confirmed)\n\nDelivery Address:\n${customerAddress}\n\nContact: ${customerMobile}\n\n🔍 Track your order anytime using the "Track Order" section on our website!`);
         
         // Clear form fields
         document.getElementById('customerName').value = '';
@@ -297,6 +423,8 @@ async function checkout() {
         toggleCart();
     } catch (error) {
         console.error('Error saving order:', error);
+        closePaymentModal();
+        
         alert(`⚠️ Order Placed (Tracking Unavailable)\n\nCustomer: ${customerName}\nItems: ${itemCount}\nTotal: ₹${total.toFixed(0)}\n\nYour order has been received but online tracking is currently unavailable.\n\nWe'll contact you on: ${customerMobile}`);
         
         // Clear form fields
@@ -822,3 +950,6 @@ window.trackOrder = trackOrder;
 window.openGalleryModal = openGalleryModal;
 window.closeGalleryModal = closeGalleryModal;
 window.changeGalleryImage = changeGalleryImage;
+window.copyUpiId = copyUpiId;
+window.closePaymentModal = closePaymentModal;
+window.confirmPayment = confirmPayment;

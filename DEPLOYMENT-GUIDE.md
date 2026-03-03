@@ -237,6 +237,15 @@ If you want to move Firebase config to environment variables:
 
 ## 🛠️ Troubleshooting
 
+### Problem: "routes cannot be present" error during Vercel deployment
+**Error Message:** `If 'rewrites', 'redirects', 'headers', 'cleanUrls' or 'trailingSlash' are used, then 'routes' cannot be present.`
+
+**Solution:** This error occurs when vercel.json uses the deprecated `routes` property alongside modern properties.
+- ✅ The vercel.json has been updated to use `rewrites` instead of `routes`
+- If you still see this error, make sure you're using the latest version of the file
+- Run `git pull` to get the updated configuration
+- Or manually update vercel.json to use `rewrites` instead of `routes`
+
 ### Problem: "Module not found" errors
 **Solution:** Make sure all file references use relative paths (e.g., `./script.js` not `/script.js`)
 

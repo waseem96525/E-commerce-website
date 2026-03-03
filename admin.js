@@ -60,6 +60,7 @@ function setupEventListeners() {
     // Settings forms
     document.getElementById('contactSettingsForm').addEventListener('submit', saveContactSettings);
     document.getElementById('socialSettingsForm').addEventListener('submit', saveSocialSettings);
+    document.getElementById('upiSettingsForm').addEventListener('submit', saveUpiSettings);
 }
 
 // Handle Login with Firebase Authentication
@@ -197,14 +198,38 @@ function loadProducts() {
         productsTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">No products found. Add your first product!</td></tr>';
     } else {
         products.forEach(product => {
+            const costPrice = product.costPrice || 0;
+            const sellingPrice = product.price || 0;
+            const profitMargin = costPrice > 0 ? (((sellingPrice - costPrice) / costPrice) * 100).toFixed(1) : 'N/A';
+            const quantity = product.quantity ?? 0;
+            
+            // Stock status styling
+            let stockClass = '';
+            let stockText = quantity;
+            if (quantity === 0) {
+                stockClass = 'style="color: #ef4444; font-weight: 600;"';
+                stockText = 'Out of Stock';
+            } else if (quantity < 5) {
+                stockClass = 'style="color: #f59e0b; font-weight: 600;"';
+            } else {
+                stockClass = 'style="color: #10b981; font-weight: 600;"';
+            }
+            
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${product.productId || product.id}</td>
                 <td style="font-size: 2rem;">${product.icon || '📦'}</td>
-                <td>${product.name || 'Unnamed'}</td>
+                <td>
+                    <div>${product.name || 'Unnamed'}</div>
+                    <small style="color: #6b7280;">${product.description || 'No description'}</small>
+                </td>
                 <td style="text-transform: capitalize;">${product.category || 'general'}</td>
-                <td>₹${(product.price || 0).toLocaleString('en-IN')}</td>
-                <td>${product.description || 'No description'}</td>
+                <td>₹${costPrice.toLocaleString('en-IN')}</td>
+                <td>₹${sellingPrice.toLocaleString('en-IN')}</td>
+                <td ${stockClass}>${stockText}</td>
+                <td style="${profitMargin !== 'N/A' && parseFloat(profitMargin) > 0 ? 'color: #10b981;' : ''}">
+                    ${profitMargin !== 'N/A' ? profitMargin + '%' : 'N/A'}
+                </td>
                 <td>
                     <div class="action-buttons">
                         <button class="btn-edit" onclick="editProduct('${product.id}')">
@@ -335,6 +360,8 @@ async function handleProductSubmit(e) {
             name: document.getElementById('productName').value,
             category: document.getElementById('productCategory').value,
             price: parseFloat(document.getElementById('productPrice').value),
+            costPrice: parseFloat(document.getElementById('productCostPrice').value) || 0,
+            quantity: parseInt(document.getElementById('productQuantity').value) || 0,
             description: document.getElementById('productDescription').value,
             icon: document.getElementById('productIcon').value || '🎨',
             updatedAt: new Date().toISOString()
@@ -380,6 +407,8 @@ function editProduct(id) {
         document.getElementById('productName').value = product.name || '';
         document.getElementById('productCategory').value = product.category || 'figurines';
         document.getElementById('productPrice').value = product.price || 0;
+        document.getElementById('productCostPrice').value = product.costPrice || 0;
+        document.getElementById('productQuantity').value = product.quantity || 0;
         document.getElementById('productDescription').value = product.description || '';
         document.getElementById('productIcon').value = product.icon || '🎨';
         
@@ -605,6 +634,19 @@ async function loadSettings() {
             document.getElementById('settingYoutube').value = settings.youtube || '';
             document.getElementById('settingInstagram').value = settings.instagram || '';
             document.getElementById('settingFacebook').value = settings.facebook || '';
+            
+            // Load UPI settings
+            document.getElementById('settingUpiId').value = settings.upiId || '';
+            
+            // Load UPI QR Code preview
+            const upiQrPreview = document.getElementById('currentUpiQrPreview');
+            const previewUpiQr = document.getElementById('previewUpiQr');
+            if (settings.upiQrCode) {
+                previewUpiQr.src = settings.upiQrCode;
+                upiQrPreview.style.display = 'block';
+            } else {
+                upiQrPreview.style.display = 'none';
+            }
         }
     } catch (error) {
         console.error('Error loading settings:', error);
@@ -675,6 +717,64 @@ async function saveSocialSettings(e) {
     } catch (error) {
         console.error('Error saving social settings:', error);
         showNotification('Error saving settings: ' + error.message, 'error');
+    }
+}
+
+// Save UPI Settings
+async function saveUpiSettings(e) {
+    e.preventDefault();
+    
+    const upiId = document.getElementById('settingUpiId').value;
+    const qrCodeFile = document.getElementById('settingUpiQrCode').files[0];
+    
+    try {
+        let qrCodeDataUrl = null;
+        
+        // Convert QR Code to Base64 if provided (avoiding CORS issues)
+        if (qrCodeFile) {
+            // Show loading notification
+            showNotification('Uploading QR code...', 'info');
+            
+            // Read file as Base64
+            qrCodeDataUrl = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(qrCodeFile);
+            });
+        }
+        
+        // Prepare settings data
+        const settings = {
+            upiId: upiId,
+            lastUpdated: new Date().toISOString()
+        };
+        
+        // Add QR code Base64 if uploaded
+        if (qrCodeDataUrl) {
+            settings.upiQrCode = qrCodeDataUrl;
+        }
+        
+        // Check if settings document exists
+        const settingsSnapshot = await getDocs(collection(db, 'settings'));
+        
+        if (settingsSnapshot.empty) {
+            // Create new settings document
+            await setDoc(doc(db, 'settings', 'store'), settings);
+        } else {
+            // Update existing settings
+            const settingsId = settingsSnapshot.docs[0].id;
+            await updateDoc(doc(db, 'settings', settingsId), settings);
+        }
+        
+        showNotification('UPI settings saved successfully!', 'success');
+        
+        // Refresh settings to show the uploaded QR code
+        await loadSettings();
+        
+    } catch (error) {
+        console.error('Error saving UPI settings:', error);
+        showNotification('Error saving UPI settings: ' + error.message, 'error');
     }
 }
 
