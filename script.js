@@ -266,8 +266,12 @@ function createProductCard(product) {
         card.classList.add('out-of-stock-card');
     }
     
+    const productImageHtml = product.imageUrl
+        ? `<img src="${product.imageUrl}" alt="${product.name}" style="width:100%;height:100%;object-fit:cover;" />`
+        : product.icon;
+
     card.innerHTML = `
-        <div class="product-image">${product.icon}</div>
+        <div class="product-image">${productImageHtml}</div>
         ${stockBadge}
         <button class="wishlist-btn ${isInWishlist ? 'active' : ''}" onclick="toggleWishlist('${product.id}')" title="Add to wishlist">
             <i class="fas fa-heart"></i>
@@ -400,8 +404,12 @@ function updateCart() {
 function createCartItem(item) {
     const div = document.createElement('div');
     div.className = 'cart-item';
+    const cartImageHtml = item.imageUrl
+        ? `<img src="${item.imageUrl}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;" />`
+        : item.icon;
+
     div.innerHTML = `
-        <div class="cart-item-image">${item.icon}</div>
+        <div class="cart-item-image">${cartImageHtml}</div>
         <div class="cart-item-details">
             <div class="cart-item-name">${item.name}</div>
             <div class="cart-item-price">₹${item.price.toFixed(0)} each</div>
@@ -515,8 +523,12 @@ function displayWishlist() {
         if (product) {
             const item = document.createElement('div');
             item.className = 'wishlist-item';
+            const wishlistImageHtml = product.imageUrl
+                ? `<img src="${product.imageUrl}" alt="${product.name}" style="width:100%;height:100%;object-fit:cover;" />`
+                : product.icon;
+
             item.innerHTML = `
-                <div class="wishlist-item-image">${product.icon}</div>
+                <div class="wishlist-item-image">${wishlistImageHtml}</div>
                 <div class="wishlist-item-details">
                     <h4>${product.name}</h4>
                     <p class="wishlist-item-price">₹${product.price.toFixed(0)}</p>
@@ -665,7 +677,10 @@ function openProductDetails(productId) {
     
     // Fill product details
     document.getElementById('productDetailsName').textContent = product.name;
-    document.getElementById('productDetailsImage').innerHTML = product.icon;
+    const productDetailsImageHtml = product.imageUrl
+        ? `<img src="${product.imageUrl}" alt="${product.name}" style="width:100%;height:100%;object-fit:contain;" />`
+        : product.icon;
+    document.getElementById('productDetailsImage').innerHTML = productDetailsImageHtml;
     document.getElementById('productDetailsCategory').textContent = product.category;
     document.getElementById('productDetailsDescription').textContent = product.description;
     document.getElementById('productDetailsPrice').innerHTML = `<strong>₹${product.price.toFixed(0)}</strong>`;
