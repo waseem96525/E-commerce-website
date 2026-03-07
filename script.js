@@ -135,6 +135,20 @@ function setupEventListeners() {
 
     // Checkout button
     checkoutBtn.addEventListener('click', checkout);
+
+    // Mobile menu toggle (show nav links including Admin on small screens)
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navLinksMobile = document.querySelector('.nav-links');
+    if (menuToggle && navLinksMobile) {
+        menuToggle.addEventListener('click', () => {
+            navLinksMobile.classList.toggle('active');
+        });
+
+        // Close mobile menu when a nav link is clicked
+        navLinksMobile.querySelectorAll('a').forEach(a => {
+            a.addEventListener('click', () => navLinksMobile.classList.remove('active'));
+        });
+    }
 }
 
 // Apply Filters and Search
